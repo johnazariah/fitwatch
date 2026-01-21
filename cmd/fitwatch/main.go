@@ -282,6 +282,7 @@ func setup(configPath string, logger *slog.Logger) (*config.Config, *store.Store
 
 	// Setup consumers
 	dispatcher := consumer.NewDispatcher()
+	dispatcher.SetLogger(logger)
 
 	if cfg.Intervals.Enabled {
 		ic := intervals.New(cfg.Intervals.AthleteID, cfg.Intervals.APIKey)

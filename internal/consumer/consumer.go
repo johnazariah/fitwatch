@@ -5,6 +5,8 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
 )
 
 // Consumer processes FIT files and sends them to a destination.
@@ -30,12 +32,28 @@ type Result struct {
 
 // Dispatcher sends FIT files to multiple consumers.
 type Dispatcher struct {
-	consumers []Consumer
+	consumers  []Consumer
+	maxRetries int
+	logger     *slog.Logger
 }
 
 // NewDispatcher creates a dispatcher with the given consumers.
 func NewDispatcher(consumers ...Consumer) *Dispatcher {
-	return &Dispatcher{consumers: consumers}
+	return &Dispatcher{
+		consumers:  consumers,
+		maxRetries: 3,
+		logger:     slog.Default(),
+	}
+}
+
+// SetMaxRetries configures the number of retry attempts for failed pushes.
+func (d *Dispatcher) SetMaxRetries(n int) {
+	d.maxRetries = n
+}
+
+// SetLogger configures the logger for the dispatcher.
+func (d *Dispatcher) SetLogger(logger *slog.Logger) {
+	d.logger = logger
 }
 
 // AddConsumer adds a consumer to the dispatcher.
@@ -45,11 +63,12 @@ func (d *Dispatcher) AddConsumer(c Consumer) {
 
 // Dispatch sends a FIT file to all registered consumers.
 // Returns results for each consumer (success or failure).
+// Automatically retries failed pushes with exponential backoff.
 func (d *Dispatcher) Dispatch(ctx context.Context, fitPath string) []Result {
 	results := make([]Result, 0, len(d.consumers))
 
 	for _, c := range d.consumers {
-		err := c.Push(ctx, fitPath)
+		err := d.pushWithRetry(ctx, c, fitPath)
 		results = append(results, Result{
 			Consumer: c.Name(),
 			FitPath:  fitPath,
@@ -59,6 +78,39 @@ func (d *Dispatcher) Dispatch(ctx context.Context, fitPath string) []Result {
 	}
 
 	return results
+}
+
+// pushWithRetry attempts to push with exponential backoff.
+func (d *Dispatcher) pushWithRetry(ctx context.Context, c Consumer, fitPath string) error {
+	var lastErr error
+	backoff := 1 * time.Second
+
+	for attempt := 0; attempt <= d.maxRetries; attempt++ {
+		if attempt > 0 {
+			d.logger.Info("retrying upload", "consumer", c.Name(), "attempt", attempt, "backoff", backoff)
+
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
+
+			// Exponential backoff: 1s, 2s, 4s, 8s...
+			backoff = min(backoff*2, 30*time.Second)
+		}
+
+		lastErr = c.Push(ctx, fitPath)
+		if lastErr == nil {
+			if attempt > 0 {
+				d.logger.Info("retry succeeded", "consumer", c.Name(), "attempts", attempt+1)
+			}
+			return nil
+		}
+
+		d.logger.Warn("push failed", "consumer", c.Name(), "attempt", attempt+1, "error", lastErr)
+	}
+
+	return fmt.Errorf("failed after %d attempts: %w", d.maxRetries+1, lastErr)
 }
 
 // ValidateAll checks all consumers are properly configured.
