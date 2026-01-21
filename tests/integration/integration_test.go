@@ -98,9 +98,9 @@ func TestEndToEnd_NewFileDetectedAndUploaded(t *testing.T) {
 		_, _ = db.CreateSyncRecord(ctx, fileID, consumer.Name())
 
 		if syncErr != nil {
-			db.UpdateSyncFailed(ctx, fileID, consumer.Name(), syncErr.Error())
+			_ = db.UpdateSyncFailed(ctx, fileID, consumer.Name(), syncErr.Error())
 		} else {
-			db.UpdateSyncSuccess(ctx, fileID, consumer.Name(), "activity123", "")
+			_ = db.UpdateSyncSuccess(ctx, fileID, consumer.Name(), "activity123", "")
 		}
 
 		processedMu.Lock()
@@ -112,7 +112,7 @@ func TestEndToEnd_NewFileDetectedAndUploaded(t *testing.T) {
 	watchCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	go w.Watch(watchCtx)
+	go func() { _ = w.Watch(watchCtx) }()
 	time.Sleep(100 * time.Millisecond) // Let watcher start
 
 	// Create a FIT file

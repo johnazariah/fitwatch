@@ -37,7 +37,7 @@ func New(dirs []string, onNew func(path string), logger *slog.Logger) *Watcher {
 }
 
 // Watch starts watching for new FIT files.
-// This blocks until the context is cancelled.
+// This blocks until the context is canceled.
 func (w *Watcher) Watch(ctx context.Context) error {
 	var err error
 	w.watcher, err = fsnotify.NewWatcher()

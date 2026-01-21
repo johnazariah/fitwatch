@@ -131,91 +131,85 @@ func HashFile(path string) (string, error) {
 }
 
 func extractActivity(meta *Metadata, activity *fit.ActivityFile) {
-	// Session data (summary)
-	for _, session := range activity.Sessions {
-		// Activity type
-		meta.ActivityType = session.Sport.String()
-		if session.SubSport != fit.SubSportGeneric {
-			meta.ActivityType = session.SubSport.String()
-		}
+	// Only use first session (if available)
+	if len(activity.Sessions) == 0 {
+		return
+	}
+	session := activity.Sessions[0]
 
-		// Timestamps
-		if !session.StartTime.IsZero() {
-			t := session.StartTime
-			meta.StartTime = &t
-		}
-		if !session.Timestamp.IsZero() {
-			t := session.Timestamp
-			meta.EndTime = &t
-		}
-
-		// Duration (stored as milliseconds in uint32)
-		if session.TotalTimerTime != 0 {
-			meta.DurationSecs = int(session.TotalTimerTime / 1000)
-		}
-		if session.TotalElapsedTime != 0 {
-			meta.ElapsedSecs = int(session.TotalElapsedTime / 1000)
-		}
-
-		// Distance
-		if session.TotalDistance != 0 {
-			meta.DistanceMeters = float64(session.TotalDistance) / 100 // cm to m
-		}
-
-		// Calories
-		meta.Calories = int(session.TotalCalories)
-
-		// Power
-		if session.AvgPower != 0xFFFF {
-			meta.AvgPower = int(session.AvgPower)
-		}
-		if session.MaxPower != 0xFFFF {
-			meta.MaxPower = int(session.MaxPower)
-		}
-		if session.NormalizedPower != 0xFFFF {
-			meta.NormPower = int(session.NormalizedPower)
-		}
-
-		// Heart rate
-		if session.AvgHeartRate != 0xFF {
-			meta.AvgHeartRate = int(session.AvgHeartRate)
-		}
-		if session.MaxHeartRate != 0xFF {
-			meta.MaxHeartRate = int(session.MaxHeartRate)
-		}
-
-		// Cadence
-		if session.AvgCadence != 0xFF {
-			meta.AvgCadence = int(session.AvgCadence)
-		}
-		if session.MaxCadence != 0xFF {
-			meta.MaxCadence = int(session.MaxCadence)
-		}
-
-		// Speed
-		if session.AvgSpeed != 0xFFFF {
-			meta.AvgSpeedMPS = float64(session.AvgSpeed) / 1000 // mm/s to m/s
-		}
-		if session.MaxSpeed != 0xFFFF {
-			meta.MaxSpeedMPS = float64(session.MaxSpeed) / 1000
-		}
-
-		// Elevation
-		if session.TotalAscent != 0xFFFF {
-			meta.TotalAscent = float64(session.TotalAscent)
-		}
-		if session.TotalDescent != 0xFFFF {
-			meta.TotalDescent = float64(session.TotalDescent)
-		}
-
-		// Only use first session
-		break
+	// Activity type
+	meta.ActivityType = session.Sport.String()
+	if session.SubSport != fit.SubSportGeneric {
+		meta.ActivityType = session.SubSport.String()
 	}
 
-	// Activity name from file (if available)
-	if activity.Activity != nil {
-		// The activity message doesn't have a name field directly
-		// Name would come from a separate event or be set by the platform
+	// Timestamps
+	if !session.StartTime.IsZero() {
+		t := session.StartTime
+		meta.StartTime = &t
+	}
+	if !session.Timestamp.IsZero() {
+		t := session.Timestamp
+		meta.EndTime = &t
+	}
+
+	// Duration (stored as milliseconds in uint32)
+	if session.TotalTimerTime != 0 {
+		meta.DurationSecs = int(session.TotalTimerTime / 1000)
+	}
+	if session.TotalElapsedTime != 0 {
+		meta.ElapsedSecs = int(session.TotalElapsedTime / 1000)
+	}
+
+	// Distance
+	if session.TotalDistance != 0 {
+		meta.DistanceMeters = float64(session.TotalDistance) / 100 // cm to m
+	}
+
+	// Calories
+	meta.Calories = int(session.TotalCalories)
+
+	// Power
+	if session.AvgPower != 0xFFFF {
+		meta.AvgPower = int(session.AvgPower)
+	}
+	if session.MaxPower != 0xFFFF {
+		meta.MaxPower = int(session.MaxPower)
+	}
+	if session.NormalizedPower != 0xFFFF {
+		meta.NormPower = int(session.NormalizedPower)
+	}
+
+	// Heart rate
+	if session.AvgHeartRate != 0xFF {
+		meta.AvgHeartRate = int(session.AvgHeartRate)
+	}
+	if session.MaxHeartRate != 0xFF {
+		meta.MaxHeartRate = int(session.MaxHeartRate)
+	}
+
+	// Cadence
+	if session.AvgCadence != 0xFF {
+		meta.AvgCadence = int(session.AvgCadence)
+	}
+	if session.MaxCadence != 0xFF {
+		meta.MaxCadence = int(session.MaxCadence)
+	}
+
+	// Speed
+	if session.AvgSpeed != 0xFFFF {
+		meta.AvgSpeedMPS = float64(session.AvgSpeed) / 1000 // mm/s to m/s
+	}
+	if session.MaxSpeed != 0xFFFF {
+		meta.MaxSpeedMPS = float64(session.MaxSpeed) / 1000
+	}
+
+	// Elevation
+	if session.TotalAscent != 0xFFFF {
+		meta.TotalAscent = float64(session.TotalAscent)
+	}
+	if session.TotalDescent != 0xFFFF {
+		meta.TotalDescent = float64(session.TotalDescent)
 	}
 }
 

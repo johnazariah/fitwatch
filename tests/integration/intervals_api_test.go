@@ -33,8 +33,10 @@ func getIntervalsCredentials(t *testing.T) (athleteID, apiKey string) {
 func TestIntervalsAPI_Authentication(t *testing.T) {
 	athleteID, apiKey := getIntervalsCredentials(t)
 
+	ctx := context.Background()
+
 	// Test that we can authenticate by fetching athlete info
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://intervals.icu/api/v1/athlete/%s", athleteID), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://intervals.icu/api/v1/athlete/%s", athleteID), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +46,7 @@ func TestIntervalsAPI_Authentication(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to connect to Intervals.icu: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == 401 {
 		t.Fatal("authentication failed - check API key")
@@ -157,7 +159,7 @@ func TestIntervalsAPI_ListActivities(t *testing.T) {
 	url := fmt.Sprintf("https://intervals.icu/api/v1/athlete/%s/activities?oldest=%s&newest=%s",
 		athleteID, oldest, newest)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +169,7 @@ func TestIntervalsAPI_ListActivities(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to list activities: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
@@ -200,7 +202,7 @@ func TestIntervalsAPI_Wellness(t *testing.T) {
 	today := time.Now().Format("2006-01-02")
 	url := fmt.Sprintf("https://intervals.icu/api/v1/athlete/%s/wellness/%s", athleteID, today)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +212,7 @@ func TestIntervalsAPI_Wellness(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get wellness: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// 404 is OK - no wellness data for today
 	if resp.StatusCode == 404 {
@@ -246,7 +248,7 @@ func TestIntervalsAPI_RateLimiting(t *testing.T) {
 	url := fmt.Sprintf("https://intervals.icu/api/v1/athlete/%s", athleteID)
 
 	for i := 0; i < 10; i++ {
-		req, err := http.NewRequest("GET", url, nil)
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -256,7 +258,7 @@ func TestIntervalsAPI_RateLimiting(t *testing.T) {
 		if err != nil {
 			t.Fatalf("request %d failed: %v", i, err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode == 429 {
 			t.Logf("Hit rate limit after %d requests", i+1)

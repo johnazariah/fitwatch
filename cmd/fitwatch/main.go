@@ -296,14 +296,14 @@ func setup(configPath string, logger *slog.Logger) (*config.Config, *store.Store
 	return cfg, syncStore, dispatcher, nil
 }
 
-func makeFileHandler(ctx context.Context, dispatcher *consumer.Dispatcher, syncStore *store.Store, logger *slog.Logger) func(string) {
+func makeFileHandler(ctx context.Context, dispatcher *consumer.Dispatcher, _ *store.Store, logger *slog.Logger) func(string) {
+	// TODO: use store parameter to record sync results with full metadata
 	return func(path string) {
 		results := dispatcher.Dispatch(ctx, path)
 
 		for _, r := range results {
 			if r.Success {
 				logger.Info("synced", "path", r.FitPath, "consumer", r.Consumer)
-				// TODO: Record in store with full metadata
 			} else {
 				logger.Error("sync failed", "path", r.FitPath, "consumer", r.Consumer, "error", r.Error)
 			}

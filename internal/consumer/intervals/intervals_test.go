@@ -210,7 +210,7 @@ func TestConsumer_Push_ContextCancellation(t *testing.T) {
 
 	err := c.Push(ctx, fitPath)
 	if err == nil {
-		t.Error("expected error for cancelled context")
+		t.Error("expected error for canceled context")
 	}
 }
 
