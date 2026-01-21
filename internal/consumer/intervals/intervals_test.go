@@ -62,7 +62,7 @@ func TestConsumer_Push_Success(t *testing.T) {
 		receivedBody = body
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id": "activity123"}`))
+		_, _ = w.Write([]byte(`{"id": "activity123"}`))
 	}))
 	defer server.Close()
 
@@ -110,7 +110,7 @@ func TestConsumer_Push_Success(t *testing.T) {
 func TestConsumer_Push_ServerError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error": "internal server error"}`))
+		_, _ = w.Write([]byte(`{"error": "internal server error"}`))
 	}))
 	defer server.Close()
 
@@ -136,7 +136,7 @@ func TestConsumer_Push_ServerError(t *testing.T) {
 func TestConsumer_Push_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error": "unauthorized"}`))
+		_, _ = w.Write([]byte(`{"error": "unauthorized"}`))
 	}))
 	defer server.Close()
 
@@ -249,7 +249,7 @@ func TestConsumer_Push_RealFitFile(t *testing.T) {
 func TestConsumer_Push_RateLimited(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error": "rate limited"}`))
+		_, _ = w.Write([]byte(`{"error": "rate limited"}`))
 	}))
 	defer server.Close()
 
@@ -276,7 +276,7 @@ func TestConsumer_Push_DuplicateActivity(t *testing.T) {
 	// Intervals.icu returns 409 for duplicate activities
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusConflict)
-		w.Write([]byte(`{"error": "activity already exists"}`))
+		_, _ = w.Write([]byte(`{"error": "activity already exists"}`))
 	}))
 	defer server.Close()
 
@@ -301,7 +301,7 @@ func TestConsumer_Push_DuplicateActivity(t *testing.T) {
 
 func BenchmarkConsumer_Push(b *testing.B) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(io.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		w.WriteHeader(http.StatusCreated)
 	}))
 	defer server.Close()

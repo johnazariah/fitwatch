@@ -260,7 +260,7 @@ func TestWatcher_ContextCancellation(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		w.Watch(ctx)
+		_ = w.Watch(ctx)
 	}()
 
 	// Give watcher time to start

@@ -7,11 +7,11 @@ set -e
 echo "🔍 Running pre-commit checks..."
 
 # Change to repo root
-cd "$(git rev-parse --show-toplevel)/fitwatch"
+cd "$(git rev-parse --show-toplevel)"
 
 # 1. Format check
 echo "📝 Checking formatting..."
-UNFORMATTED=$(gofmt -l . 2>/dev/null || true)
+UNFORMATTED=$(gofmt -l . 2>/dev/null | grep -v '.project/spikes' || true)
 if [ -n "$UNFORMATTED" ]; then
     echo "❌ The following files need formatting:"
     echo "$UNFORMATTED"
@@ -21,10 +21,16 @@ if [ -n "$UNFORMATTED" ]; then
 fi
 echo "✓ Formatting OK"
 
-# 2. Vet
-echo "🔬 Running go vet..."
-go vet ./...
-echo "✓ Vet OK"
+# 2. Lint (if golangci-lint is available)
+echo "🔬 Running linter..."
+if command -v golangci-lint >/dev/null 2>&1; then
+    golangci-lint run --timeout=5m
+    echo "✓ Lint OK"
+else
+    echo "⚠️  golangci-lint not found, running go vet instead"
+    go vet ./...
+    echo "✓ Vet OK"
+fi
 
 # 3. Build
 echo "🔨 Building..."
@@ -52,6 +58,7 @@ for file in $STAGED_FILES; do
         *.example|*.sample|*.template) continue ;;
         *.exe|*.dll|*.bin|*.fit|*.db|*.png|*.jpg|*.gif) continue ;;
         */testdata/*) continue ;;
+        .project/spikes/*) continue ;;
     esac
     
     if [ -f "$file" ]; then

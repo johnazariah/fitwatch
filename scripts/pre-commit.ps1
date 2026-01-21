@@ -5,25 +5,17 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "🔍 Running pre-commit checks..." -ForegroundColor Cyan
 
-# Change to fitwatch directory
+# Change to repo root
 try {
     $repoRoot = & git rev-parse --show-toplevel 2>&1
-    if ($LASTEXITCODE -eq 0 -and (Test-Path "$repoRoot/fitwatch")) {
-        Set-Location "$repoRoot/fitwatch"
-    } elseif (Test-Path "./fitwatch") {
-        Set-Location "./fitwatch"
-    } else {
-        # Already in fitwatch or running from scripts
-        $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-        if ($scriptDir -match "scripts$") {
-            Set-Location (Split-Path -Parent $scriptDir)
-        }
+    if ($LASTEXITCODE -eq 0) {
+        Set-Location $repoRoot
     }
 } catch {
-    # Not in a git repo, try to find fitwatch directory relative to script
+    # Not in a git repo, try to find repo root relative to script
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $fitDir = Split-Path -Parent $scriptDir
-    Set-Location $fitDir
+    $repoRoot = Split-Path -Parent $scriptDir
+    Set-Location $repoRoot
 }
 
 # 1. Format check
@@ -38,14 +30,25 @@ if ($unformatted) {
 }
 Write-Host "✓ Formatting OK" -ForegroundColor Green
 
-# 2. Vet
-Write-Host "🔬 Running go vet..." -ForegroundColor Yellow
-go vet ./...
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ go vet failed" -ForegroundColor Red
-    exit 1
+# 2. Lint (use golangci-lint if available, fallback to go vet)
+Write-Host "🔬 Running linter..." -ForegroundColor Yellow
+$hasLinter = Get-Command golangci-lint -ErrorAction SilentlyContinue
+if ($hasLinter) {
+    golangci-lint run --timeout=5m
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Lint failed" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "✓ Lint OK" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  golangci-lint not found, running go vet instead" -ForegroundColor Yellow
+    go vet ./...
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ go vet failed" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "✓ Vet OK" -ForegroundColor Green
 }
-Write-Host "✓ Vet OK" -ForegroundColor Green
 
 # 3. Build
 Write-Host "🔨 Building..." -ForegroundColor Yellow

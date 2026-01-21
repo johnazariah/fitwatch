@@ -181,7 +181,7 @@ func TestParse_InvalidFile(t *testing.T) {
 	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 	_, _ = tmpFile.WriteString("this is not a FIT file")
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	_, err = Parse(tmpFile.Name())
 	if err == nil {

@@ -62,7 +62,7 @@ func (c *Consumer) Push(ctx context.Context, fitPath string) error {
 	if err != nil {
 		return fmt.Errorf("open file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Create multipart form
 	var buf bytes.Buffer
@@ -97,7 +97,7 @@ func (c *Consumer) Push(ctx context.Context, fitPath string) error {
 	if err != nil {
 		return fmt.Errorf("send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Check response
 	if resp.StatusCode >= 400 {
