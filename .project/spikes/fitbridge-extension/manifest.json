@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "FitBridge Site Connector",
+  "version": "0.1.0",
+  "description": "Connect your fitness platforms to FitBridge for seamless activity sync",
+  
+  "permissions": [
+    "storage",
+    "webRequest"
+  ],
+  
+  "host_permissions": [
+    "https://*.mywhoosh.com/*",
+    "https://*.zwift.com/*",
+    "https://*.igpsport.com/*",
+    "https://*.trainingpeaks.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup/popup.html"
+  }
+}
