@@ -1,0 +1,42 @@
+{
+  "name": "FitWatch Dev",
+  "image": "mcr.microsoft.com/devcontainers/go:1.21",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/fitwatch",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "ms-vscode.makefile-tools",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "tamasfe.even-better-toml",
+        "eamodio.gitlens",
+        "usernamehw.errorlens"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.lintTool": "golangci-lint",
+        "go.lintFlags": ["--fast"],
+        "editor.formatOnSave": true,
+        "[go]": {
+          "editor.defaultFormatter": "golang.go"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "cd /workspaces/${localWorkspaceFolderBasename}/fitwatch && go mod download && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.fitwatch-dev,target=/home/vscode/.fitwatch,type=bind,consistency=cached"
+  ],
+  "forwardPorts": [],
+  "portsAttributes": {},
+  "remoteEnv": {
+    "FITWATCH_DEV": "true"
+  }
+}
