@@ -1,0 +1,12 @@
+#!/bin/sh
+# Pre-commit hook for FitWatch (Windows/PowerShell compatible version)
+# This is a wrapper that calls the PowerShell script on Windows
+
+# Detect OS and run appropriate script
+if [ -n "$COMSPEC" ] || [ -n "$windir" ]; then
+    # Windows - use PowerShell
+    powershell.exe -ExecutionPolicy Bypass -File "$(git rev-parse --show-toplevel)/fitwatch/scripts/pre-commit.ps1"
+else
+    # Unix - use shell script
+    exec "$(git rev-parse --show-toplevel)/fitwatch/scripts/pre-commit"
+fi
