@@ -2,20 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
     tags: ['v*']
     paths:
-      - 'fitwatch/**'
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
       - '.github/workflows/ci.yml'
   pull_request:
-    branches: [main]
+    branches: [master, main]
     paths:
-      - 'fitwatch/**'
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
       - '.github/workflows/ci.yml'
-
-defaults:
-  run:
-    working-directory: fitwatch
 
 jobs:
   lint:
@@ -28,14 +28,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-          cache-dependency-path: fitwatch/go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
           version: latest
           args: --timeout=5m
-          working-directory: fitwatch
 
   test:
     name: Test
@@ -47,7 +45,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-          cache-dependency-path: fitwatch/go.sum
 
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
@@ -55,7 +52,7 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          files: fitwatch/coverage.out
+          files: coverage.out
           fail_ci_if_error: false
 
   build:
@@ -71,7 +68,6 @@ jobs:
             goarch: arm64
           - goos: windows
             goarch: amd64
-          # macOS builds only on release tags (expensive runners)
     steps:
       - uses: actions/checkout@v4
 
@@ -79,7 +75,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-          cache-dependency-path: fitwatch/go.sum
 
       - name: Build
         env:
@@ -99,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fitwatch-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: fitwatch/dist/fitwatch-*
+          path: dist/fitwatch-*
 
   release:
     name: Release
@@ -115,7 +110,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-          cache-dependency-path: fitwatch/go.sum
 
       - name: Build all platforms (including macOS)
         run: |
@@ -134,12 +128,6 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -ldflags="${LDFLAGS}" -o dist/fitwatch-darwin-amd64 ./cmd/fitwatch
           GOOS=darwin GOARCH=arm64 go build -ldflags="${LDFLAGS}" -o dist/fitwatch-darwin-arm64 ./cmd/fitwatch
 
-      - name: Download CI artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ci-artifacts
-          merge-multiple: true
-
       - name: Create checksums
         run: |
           cd dist
@@ -151,6 +139,6 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref, '-') }}
           files: |
-            fitwatch/dist/fitwatch-*
-            fitwatch/dist/checksums.txt
+            dist/fitwatch-*
+            dist/checksums.txt
           generate_release_notes: true
