@@ -326,3 +326,29 @@ func BenchmarkConsumer_Push(b *testing.B) {
 		}
 	}
 }
+
+func TestExtractActivityName(t *testing.T) {
+	tests := []struct {
+		filename string
+		want     string
+	}{
+		{"2025-02-23_Hudayriyat_Ascend.fit", "Hudayriyat Ascend"},
+		{"2025-02-23_Coffee_Trail.fit", "Coffee Trail"},
+		{"2025-05-05_Area_52.fit", "Area 52"},
+		{"2025-02-23_.fit", ""},
+		{"2025-02-23.fit", ""},
+		{"activity.fit", "activity"},
+		{"My_Ride.fit", "My Ride"},
+		{"2025-04-07_Al_Wathba-L.fit", "Al Wathba L"},
+		{"2025-05-30_Heian_Samurai_Circuit.fit", "Heian Samurai Circuit"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.filename, func(t *testing.T) {
+			got := extractActivityName(tt.filename)
+			if got != tt.want {
+				t.Errorf("extractActivityName(%q) = %q, want %q", tt.filename, got, tt.want)
+			}
+		})
+	}
+}
