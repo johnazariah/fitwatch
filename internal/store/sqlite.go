@@ -187,7 +187,7 @@ func (s *Store) ListFiles(ctx context.Context, limit int) ([]*FitFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var files []*FitFile
 	for rows.Next() {
@@ -262,7 +262,7 @@ func (s *Store) GetPendingFiles(ctx context.Context, consumer string) ([]*FitFil
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var files []*FitFile
 	for rows.Next() {
@@ -287,7 +287,7 @@ func (s *Store) GetFailedSyncs(ctx context.Context, consumer string, maxRetries 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var records []*SyncRecord
 	for rows.Next() {
@@ -347,7 +347,7 @@ func (s *Store) Stats(ctx context.Context) (*StoreStats, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var consumer, status string
