@@ -44,7 +44,7 @@ func (w *Watcher) Watch(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer w.watcher.Close()
+	defer func() { _ = w.watcher.Close() }()
 
 	// Add all directories to watch
 	for _, dir := range w.dirs {

@@ -34,7 +34,7 @@ func TestWatcher_DetectsNewFitFile(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	go w.Watch(ctx)
+	go func() { _ = w.Watch(ctx) }()
 
 	// Give watcher time to start
 	time.Sleep(100 * time.Millisecond)
@@ -75,7 +75,7 @@ func TestWatcher_IgnoresNonFitFiles(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	go w.Watch(ctx)
+	go func() { _ = w.Watch(ctx) }()
 
 	// Give watcher time to start
 	time.Sleep(100 * time.Millisecond)
@@ -114,7 +114,7 @@ func TestWatcher_MultipleFitFiles(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	go w.Watch(ctx)
+	go func() { _ = w.Watch(ctx) }()
 
 	// Give watcher time to start
 	time.Sleep(100 * time.Millisecond)
@@ -164,7 +164,7 @@ func TestWatcher_MultipleDirectories(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	go w.Watch(ctx)
+	go func() { _ = w.Watch(ctx) }()
 
 	// Give watcher time to start
 	time.Sleep(100 * time.Millisecond)
@@ -214,7 +214,7 @@ func TestWatcher_CaseInsensitiveFitExtension(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	go w.Watch(ctx)
+	go func() { _ = w.Watch(ctx) }()
 
 	// Give watcher time to start
 	time.Sleep(100 * time.Millisecond)
