@@ -1,0 +1,60 @@
+# FitWatch Configuration
+# Copy this file to ~/.fitwatch/config.toml and edit with your settings.
+
+# =============================================================================
+# Watch Directories
+# =============================================================================
+# Directories to monitor for new FIT files.
+# Default locations vary by platform (see README.md for details).
+
+watch_dirs = [
+    # Windows examples:
+    # "C:\\Users\\YourName\\Documents\\Zwift\\Activities",
+    # "C:\\Users\\YourName\\Documents\\TrainerRoad",
+    
+    # macOS/Linux examples:
+    # "/Users/yourname/Documents/Zwift/Activities",
+    # "/home/yourname/Documents/Zwift/Activities",
+]
+
+# =============================================================================
+# Database Path (optional)
+# =============================================================================
+# Path to the SQLite database for tracking synced files.
+# Default: ~/.fitwatch/fitwatch.db
+
+# store_path = "~/.fitwatch/fitwatch.db"
+
+# =============================================================================
+# Intervals.icu
+# =============================================================================
+# Upload FIT files to Intervals.icu for training analysis.
+# 
+# To get your credentials:
+# 1. Log in to https://intervals.icu
+# 2. Athlete ID: Look at the URL - intervals.icu/athlete/i12345 → ID is "i12345"
+# 3. API Key: Settings → Developer Settings → Create API Key
+
+[intervals]
+enabled = false
+athlete_id = ""  # e.g., "i12345"
+api_key = ""     # Your API key from Intervals.icu settings
+
+# =============================================================================
+# Future Consumers (not yet implemented)
+# =============================================================================
+
+# [strava]
+# enabled = false
+# client_id = ""
+# client_secret = ""
+
+# [trainingpeaks]
+# enabled = false
+# username = ""
+# password = ""
+
+# [webhook]
+# enabled = false
+# url = "https://your-server.com/webhook"
+# secret = ""
