@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -172,7 +173,40 @@ func (w *Watcher) handleEvent(event fsnotify.Event) {
 
 	w.logger.Info("new FIT file detected", "path", event.Name)
 	w.MarkSeen(event.Name)
-	w.onNew(event.Name)
+
+	// Wait for file to be ready (not locked by another process)
+	go func(path string) {
+		if err := w.waitForFileReady(path, 30*time.Second); err != nil {
+			w.logger.Warn("file not ready after waiting", "path", path, "error", err)
+			return
+		}
+		w.onNew(path)
+	}(event.Name)
+}
+
+// waitForFileReady waits until a file can be opened for reading.
+// This handles the case where a file is still being written/copied.
+func (w *Watcher) waitForFileReady(path string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	backoff := 100 * time.Millisecond
+
+	for time.Now().Before(deadline) {
+		f, err := os.Open(path)
+		if err == nil {
+			_ = f.Close()
+			// Small extra delay to ensure write is fully flushed
+			time.Sleep(100 * time.Millisecond)
+			return nil
+		}
+
+		w.logger.Debug("file not ready, waiting", "path", path, "backoff", backoff)
+		time.Sleep(backoff)
+
+		// Exponential backoff up to 2 seconds
+		backoff = min(backoff*2, 2*time.Second)
+	}
+
+	return os.ErrDeadlineExceeded
 }
 
 func isFitFile(name string) bool {
