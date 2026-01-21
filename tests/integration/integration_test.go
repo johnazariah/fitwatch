@@ -35,9 +35,9 @@ func TestEndToEnd_NewFileDetectedAndUploaded(t *testing.T) {
 		mu.Lock()
 		uploadedFiles = append(uploadedFiles, r.URL.Path)
 		mu.Unlock()
-		io.Copy(io.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id": "activity123"}`))
+		_, _ = w.Write([]byte(`{"id": "activity123"}`))
 	}))
 	defer server.Close()
 
@@ -50,7 +50,7 @@ func TestEndToEnd_NewFileDetectedAndUploaded(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Create consumer
 	consumer := intervals.New("athlete123", "apikey456")
@@ -95,7 +95,7 @@ func TestEndToEnd_NewFileDetectedAndUploaded(t *testing.T) {
 		syncErr := consumer.Push(ctx, path)
 
 		// Record sync result
-		db.CreateSyncRecord(ctx, fileID, consumer.Name())
+		_, _ = db.CreateSyncRecord(ctx, fileID, consumer.Name())
 
 		if syncErr != nil {
 			db.UpdateSyncFailed(ctx, fileID, consumer.Name(), syncErr.Error())
@@ -157,7 +157,7 @@ func TestEndToEnd_DuplicateDetection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Get real FIT file if available
 	realFitPath := filepath.Join("..", "..", "testdata", "sample.fit")
@@ -223,7 +223,7 @@ func TestEndToEnd_RealFitFileParsing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Parse the FIT file
 	meta, err := fitparser.Parse(realFitPath)
@@ -297,7 +297,7 @@ func TestEndToEnd_ScanAndSyncExistingFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	var scannedCount int
 	var mu sync.Mutex
@@ -329,7 +329,7 @@ func TestEndToEnd_SyncFailureAndRetry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Insert a file
 	fitFile := &store.FitFile{

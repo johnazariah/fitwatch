@@ -218,7 +218,7 @@ func TestStore_Stats(t *testing.T) {
 			Source:       "test",
 		}
 		id, _ := store.InsertFile(ctx, file)
-		store.CreateSyncRecord(ctx, id, "intervals.icu")
+		_, _ = store.CreateSyncRecord(ctx, id, "intervals.icu")
 	}
 
 	stats, err = store.Stats(ctx)
@@ -254,7 +254,7 @@ func TestStore_PersistsAcrossReopen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to insert file: %v", err)
 	}
-	store1.Close()
+	_ = store1.Close()
 
 	// Verify file exists
 	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
@@ -266,7 +266,7 @@ func TestStore_PersistsAcrossReopen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to reopen store: %v", err)
 	}
-	defer store2.Close()
+	defer func() { _ = store2.Close() }()
 
 	got, err := store2.GetFileByPath(ctx, file.Path)
 	if err != nil {
